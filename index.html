@@ -96,6 +96,7 @@
       grid-auto-rows: var(--cell-size);
       gap: var(--gap);
       justify-content: center;
+      width: 100%;
       padding: 8px;
       border-radius: var(--radius);
       background: linear-gradient(180deg, #f6f8ff, #f9fbff);
@@ -221,7 +222,7 @@
   </main>
 
   <!-- End game overlay -->
-  <div class="overlay" id="overlay" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="overlay" id="overlay" aria-hidden="true" role="dialog" aria-modal="true" inert>
     <div class="modal">
       <h2>ゲーム終了</h2>
       <p>削除可能なグループはありません。</p>
@@ -277,11 +278,35 @@
       return b;
     }
 
+    function updateGridMetrics() {
+      // Always reflect current column count in grid style
+      boardEl.style.gridTemplateColumns = `repeat(${COLS}, var(--cell-size))`;
+      // Fit cells to container width so columns don't overflow
+      const rootStyles = getComputedStyle(document.documentElement);
+      const gapPx = parseFloat(rootStyles.getPropertyValue('--gap')) || 6;
+      const boardPaddingLR = 16; // .board has padding: 8px on each side
+      const container = boardEl.parentElement; // .board-wrap
+      let containerContentWidth = boardEl.clientWidth;
+      if (container) {
+        const cs = getComputedStyle(container);
+        const pl = parseFloat(cs.paddingLeft) || 0;
+        const pr = parseFloat(cs.paddingRight) || 0;
+        // clientWidth already includes padding, so subtract to get content box width
+        containerContentWidth = container.clientWidth - (pl + pr);
+      }
+      const available = containerContentWidth - boardPaddingLR - gapPx * (COLS - 1);
+      if (available > 0) {
+        const raw = Math.floor(available / COLS);
+        const clamped = Math.max(28, Math.min(44, raw)); // keep within design range
+        boardEl.style.setProperty('--cell-size', `${clamped}px`);
+      }
+    }
+
     function renderBoard() {
-      // Build DOM once if empty
-      if (boardEl.childElementCount === 0) {
-        // set grid columns according to COLS
-        boardEl.style.gridTemplateColumns = `repeat(${COLS}, var(--cell-size))`;
+      updateGridMetrics();
+      // Rebuild cells when empty or count mismatches the current ROWS*COLS
+      if (boardEl.childElementCount !== ROWS * COLS) {
+        boardEl.innerHTML = '';
         for (let r = 0; r < ROWS; r++) {
           for (let c = 0; c < COLS; c++) {
             const cell = createDiv('cell');
@@ -317,6 +342,8 @@
           }
         }
       }
+      // ensure metrics after potential DOM changes
+      updateGridMetrics();
     }
 
     function applyTypeClass(pieceEl, type) {
@@ -464,7 +491,10 @@
       gameState = 'ended';
       statusEl.textContent = 'ゲーム終了：削除可能なグループはありません';
       overlayEl.classList.add('show');
+      overlayEl.removeAttribute('inert');
       overlayEl.setAttribute('aria-hidden', 'false');
+      // move focus into the dialog for SR users
+      requestAnimationFrame(() => overlayBtn.focus());
     }
 
     function newGame() {
@@ -473,12 +503,19 @@
       board = createRandomBoard(ROWS, COLS, TYPES);
       score = 0; gameState = 'playing';
       statusEl.textContent = 'プレイ中：同じ色が2つ以上つながったグループをクリック/タップで削除できます';
+      // ensure focus is not inside the dialog before hiding it
+      overlayBtn.blur();
+      newGameBtn.focus();
       overlayEl.classList.remove('show');
       overlayEl.setAttribute('aria-hidden', 'true');
+      overlayEl.setAttribute('inert', '');
       // DOM will be rebuilt by renderBoard()
       renderBoard();
       updateScore();
     }
+
+    // handle window resize to keep grid fitted
+    window.addEventListener('resize', () => updateGridMetrics());
 
     // init
     newGame();
