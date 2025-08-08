@@ -159,7 +159,10 @@ A: 大量のDOMノード操作を最適化していますが、古いデバイ�
 
 ## 👨‍💻 開発者
 
-Claude Code により開発されました。
+最初のアイデアは ardbeg1958@gmail.com によって提供されました。
+Claude Code により基本要求がとりまとめられ README.md が作成されました。
+基本要求を受けて、GPT-5 により REQ.md と DESIGN.md が作成されました
+実装も GPT-5 により行われました（GPT-5 は low reasoning モードです）
 
 ---
 
