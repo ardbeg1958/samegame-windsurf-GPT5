@@ -21,7 +21,7 @@
   - 新しいゲーム: 盤面再生成ボタン
 - **メイン**
   - 盤面グリッド: CSS Grid で N×M（既定例 10×15）
-  - 終了メッセージ: 盤面下部またはオーバーレイで表示
+  - 終了メッセージ: 画面中央のモーダルオーバーレイで表示し、モーダル内に「新しいゲーム」ボタンを配置
 - **フッター（任意）**
   - 簡単なヘルプ/著作権
 
@@ -38,6 +38,7 @@
 - **状態**
   - `score: number`
   - `gameState: 'playing' | 'ended'`
+  - （UI）モーダル表示は DOM の `#overlay` に `show` クラス付与/除去と `aria-hidden` 切替で制御
 
 ## 4. 駒の種類と表現
 - 種類: 5 種（●/▲/■/◆/★）
@@ -70,18 +71,20 @@
 2. セル入力: クリック/タップで `onCellSelect(r,c)`
 3. 検出: `findGroup(r,c)` → サイズ<2なら何もしない
 4. 反映: begin batch → `removeGroup` → `applyGravity` → `shiftColumns` → end batch（DOM 再描画）
-5. 終了判定: `hasAnyMoves()` でなければ `endGame()` とメッセージ表示
-6. 新規ゲーム: `newGame()` で再初期化
+5. 終了判定: `hasAnyMoves()` でなければ `endGame()` を実行し、`#overlay.show` を表示（`aria-hidden=false`）
+6. 新規ゲーム: `newGame()` で再初期化し、`#overlay` から `show` を外す（`aria-hidden=true`）
 
 ## 7. DOM/描画方針
 - 盤面の DOM ノードは固定長で再利用（座標→index を決定）。
 - 反映は **データを正**として DOM に同期。
 - 更新の塊ごとに `requestAnimationFrame` でスタイル反映、CSS Transition で落下/シフト表現（初回は簡易）。
+ - 終了モーダル要素: `#overlay`（`role="dialog"`, `aria-modal`）。表示は `.show` クラスでトグル。
 
 ## 8. アクセシビリティ
 - 色だけに依存せず形状も併用。
 - コントラスト確保（暗背景 × 鮮やかな駒）。
 - フォーカスリング（キーボード対応は任意）。
+ - モーダル: `role="dialog"`, `aria-modal`, `aria-hidden` を適切に切替。将来的にフォーカストラップ導入を検討。
 
 ## 9. 擬似コード
 ```js
@@ -110,6 +113,7 @@ function onCellSelect(r, c) {
 - グリッド: `grid-template-columns: repeat(COLS, var(--cell-size));`
 - セル: Flex 中央、`will-change: transform`, `transition: transform .15s ease, opacity .15s ease`。
 - ホバー/選択: 枠線 or スケールアップ。
+ - モーダル: 半透明背景 + `backdrop-filter: blur()`、カードは角丸+シャドウ、`opacity` と `pointer-events` で表示制御。
 
 ## 11. テスト観点（抜粋）
 - グループ検出の境界条件（端/孤立/蛇行）
