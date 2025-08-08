@@ -113,6 +113,21 @@
     }
     .cell:hover .piece { transform: scale(1.05); }
 
+    /* highlight for deletable group */
+    .cell.highlight .piece {
+      transform: scale(1.08);
+      box-shadow: 0 6px 14px rgba(0,0,0,.25);
+    }
+    .cell.highlight::after {
+      content: "";
+      position: absolute; inset: 0; border-radius: 12px;
+      box-shadow: 0 0 0 2px rgba(108,139,255,.35) inset;
+      pointer-events: none;
+    }
+
+    /* fade out for removal */
+    .piece.vanish { opacity: 0; transform: scale(.85); }
+
     /* shapes */
     .circle { border-radius: 999px; background: var(--c-red); }
     .triangle {
@@ -166,9 +181,7 @@
         <span class="dot" style="background: var(--c-green);"></span>
         <span class="dot" style="background: var(--c-yellow);"></span>
       </div>
-      <div class="board" id="board" aria-label="盤面">
-        <!-- 10 x 15 mock cells -->
-      </div>
+      <div class="board" id="board" aria-label="盤面"></div>
       <div id="status" style="text-align:center; color: var(--muted); margin-top: 10px; font-size: 13px;">UI モック（ロジック未実装）</div>
     </div>
   </main>
@@ -178,28 +191,239 @@
   </footer>
 
   <script>
-    // Simple mock grid filler: 10 x 15 with random piece styles
-    const COLS = 10; const ROWS = 15;
-    const shapes = [
-      () => createDiv('piece circle'),
-      () => createDiv('piece triangle'),
-      () => createDiv('piece square'),
-      () => createDiv('piece diamond'),
-      () => createDiv('piece star'),
-    ];
+    // Same Game implementation (Step 1: core logic, Step 2: highlight, Step 3: simple animations)
+    const COLS = 10; // default width
+    const ROWS = 15; // default height
+    const TYPES = 5; // number of piece types
+    const SCORE_UNIT = 10;
 
-    function createDiv(cls) { const el = document.createElement('div'); el.className = cls; return el; }
+    let board = []; // 2D array (ROWS x COLS), values: 0..TYPES-1 or null
+    let score = 0;
+    let gameState = 'playing'; // 'playing' | 'ended'
+    let hoverGroup = null; // array of [r,c]
 
     const boardEl = document.getElementById('board');
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        const cell = createDiv('cell');
-        const pieceFactory = shapes[Math.floor(Math.random() * shapes.length)];
-        const piece = pieceFactory();
-        cell.appendChild(piece);
-        boardEl.appendChild(cell);
+    const scoreEl = document.querySelector('.score');
+    const statusEl = document.getElementById('status');
+    const newGameBtn = document.querySelector('.btn');
+
+    newGameBtn.addEventListener('click', () => newGame());
+
+    function randInt(n) { return Math.floor(Math.random() * n); }
+    function createDiv(cls) { const el = document.createElement('div'); el.className = cls; return el; }
+
+    function createRandomBoard(rows, cols, types) {
+      const b = new Array(rows);
+      for (let r = 0; r < rows; r++) {
+        b[r] = new Array(cols);
+        for (let c = 0; c < cols; c++) {
+          b[r][c] = randInt(types);
+        }
+      }
+      return b;
+    }
+
+    function renderBoard() {
+      // Build DOM once if empty
+      if (boardEl.childElementCount === 0) {
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            const cell = createDiv('cell');
+            cell.dataset.row = String(r);
+            cell.dataset.col = String(c);
+            // event listeners
+            cell.addEventListener('mouseenter', onCellEnter);
+            cell.addEventListener('mouseleave', onCellLeave);
+            cell.addEventListener('click', onCellClick);
+            cell.addEventListener('touchstart', onCellEnter, { passive: true });
+            cell.addEventListener('touchend', onCellLeave, { passive: true });
+            const piece = createDiv('piece');
+            cell.appendChild(piece);
+            boardEl.appendChild(cell);
+          }
+        }
+      }
+
+      // Update pieces
+      const cells = boardEl.children; let idx = 0;
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++, idx++) {
+          const cell = cells[idx];
+          const piece = cell.firstElementChild;
+          cell.classList.remove('highlight');
+          piece.className = 'piece';
+          piece.style.opacity = '';
+          if (board[r][c] == null) {
+            piece.style.opacity = '0';
+          } else {
+            const t = board[r][c];
+            applyTypeClass(piece, t);
+          }
+        }
       }
     }
+
+    function applyTypeClass(pieceEl, type) {
+      // map types to shape classes: 0 circle, 1 triangle, 2 square, 3 diamond, 4 star
+      const classes = ['circle','triangle','square','diamond','star'];
+      pieceEl.classList.add(classes[type]);
+    }
+
+    function updateScore() {
+      scoreEl.textContent = `Score: ${score}`;
+    }
+
+    function inBounds(r, c) { return r >= 0 && r < ROWS && c >= 0 && c < COLS; }
+
+    function findGroup(sr, sc) {
+      const start = board[sr][sc];
+      if (start == null) return [];
+      const q = [[sr, sc]];
+      const seen = new Set([`${sr},${sc}`]);
+      const out = [];
+      while (q.length) {
+        const [r, c] = q.shift();
+        out.push([r, c]);
+        const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+        for (const [dr, dc] of dirs) {
+          const nr = r + dr, nc = c + dc;
+          if (!inBounds(nr, nc)) continue;
+          const key = `${nr},${nc}`;
+          if (seen.has(key)) continue;
+          if (board[nr][nc] === start) { seen.add(key); q.push([nr, nc]); }
+        }
+      }
+      return out;
+    }
+
+    function removeGroup(group) {
+      // Step 3: fade animation, then remove
+      const cells = boardEl.children;
+      for (const [r, c] of group) {
+        const idx = r * COLS + c;
+        const piece = cells[idx].firstElementChild;
+        piece.classList.add('vanish');
+      }
+      // After transition, nullify and proceed
+      const delay = 180; // ms, aligned with --speed
+      return new Promise(resolve => setTimeout(() => {
+        for (const [r, c] of group) board[r][c] = null;
+        resolve();
+      }, delay));
+    }
+
+    function applyGravity() {
+      for (let c = 0; c < COLS; c++) {
+        let write = ROWS - 1;
+        for (let r = ROWS - 1; r >= 0; r--) {
+          if (board[r][c] != null) {
+            if (write !== r) { board[write][c] = board[r][c]; board[r][c] = null; }
+            write--;
+          }
+        }
+      }
+    }
+
+    function shiftColumns() {
+      let write = 0;
+      for (let c = 0; c < COLS; c++) {
+        // check if column has any non-null
+        let has = false;
+        for (let r = 0; r < ROWS; r++) if (board[r][c] != null) { has = true; break; }
+        if (has) {
+          if (write !== c) {
+            for (let r = 0; r < ROWS; r++) { board[r][write] = board[r][c]; board[r][c] = null; }
+          }
+          write++;
+        }
+      }
+    }
+
+    function hasAnyMoves() {
+      const seen = new Set();
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (board[r][c] == null) continue;
+          const key = `${r},${c}`; if (seen.has(key)) continue;
+          const g = findGroup(r, c);
+          for (const [gr, gc] of g) seen.add(`${gr},${gc}`);
+          if (g.length >= 2) return true;
+        }
+      }
+      return false;
+    }
+
+    function onCellEnter(e) {
+      if (gameState !== 'playing') return;
+      const cell = e.currentTarget;
+      const r = Number(cell.dataset.row), c = Number(cell.dataset.col);
+      if (board[r][c] == null) return;
+      const g = findGroup(r, c);
+      clearHighlights();
+      if (g.length >= 2) {
+        hoverGroup = g;
+        highlightGroup(g);
+      } else {
+        hoverGroup = null;
+      }
+    }
+
+    function onCellLeave() {
+      hoverGroup = null;
+      clearHighlights();
+    }
+
+    function onCellClick(e) {
+      if (gameState !== 'playing') return;
+      const cell = e.currentTarget;
+      const r = Number(cell.dataset.row), c = Number(cell.dataset.col);
+      const g = findGroup(r, c);
+      if (g.length < 2) return;
+      // score
+      score += g.length * g.length * SCORE_UNIT;
+      updateScore();
+      // animate + remove -> gravity -> shift -> rerender -> check end
+      removeGroup(g).then(() => {
+        applyGravity();
+        shiftColumns();
+        renderBoard();
+        if (!hasAnyMoves()) endGame();
+      });
+    }
+
+    function highlightGroup(group) {
+      const cells = boardEl.children;
+      for (const [r, c] of group) {
+        const idx = r * COLS + c;
+        cells[idx].classList.add('highlight');
+      }
+    }
+
+    function clearHighlights() {
+      const cells = boardEl.children;
+      for (let i = 0; i < cells.length; i++) cells[i].classList.remove('highlight');
+    }
+
+    function endGame() {
+      gameState = 'ended';
+      statusEl.textContent = 'ゲーム終了：削除可能なグループはありません';
+    }
+
+    function newGame() {
+      board = createRandomBoard(ROWS, COLS, TYPES);
+      score = 0; gameState = 'playing';
+      statusEl.textContent = '';
+      // reset DOM if already built
+      if (boardEl.hasChildNodes()) {
+        const cells = boardEl.children; let idx = 0;
+        for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++, idx++) cells[idx].classList.remove('highlight');
+      }
+      renderBoard();
+      updateScore();
+    }
+
+    // init
+    newGame();
   </script>
 </body>
 </html>
