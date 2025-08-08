@@ -62,6 +62,12 @@
       padding: 8px 12px; border-radius: 8px; font-variant-numeric: tabular-nums;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
     }
+    .select {
+      appearance: none;
+      background: #ffffff; border: 1px solid #d7ddff; color: var(--text);
+      padding: 6px 8px; border-radius: 8px; font-size: 13px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04) inset;
+    }
     .btn {
       appearance: none; border: none; cursor: pointer; color: white;
       padding: 10px 14px; border-radius: 10px; font-weight: 700;
@@ -187,6 +193,13 @@
       <h1>Same Game</h1>
     </div>
     <div class="toolbar">
+      <label for="sizeSelect" class="size-label" style="color: var(--muted); font-size: 12px;">サイズ:</label>
+      <select id="sizeSelect" class="select" aria-label="盤面サイズ">
+        <option value="10x10" selected>10×10</option>
+        <option value="10x15">10×15</option>
+        <option value="15x10">15×10</option>
+        <option value="15x15">15×15</option>
+      </select>
       <div class="score" aria-live="polite">Score: 0</div>
       <button class="btn" type="button">新しいゲーム</button>
     </div>
@@ -224,8 +237,8 @@
 
   <script>
     // Same Game implementation (Step 1: core logic, Step 2: highlight, Step 3: simple animations)
-    const COLS = 10; // default width
-    const ROWS = 15; // default height
+    let COLS = 10; // default width
+    let ROWS = 10; // default height
     const TYPES = 5; // number of piece types
     const SCORE_UNIT = 10;
 
@@ -238,11 +251,17 @@
     const scoreEl = document.querySelector('.score');
     const statusEl = document.getElementById('status');
     const newGameBtn = document.querySelector('.btn');
+    const sizeSelect = document.getElementById('sizeSelect');
     const overlayEl = document.getElementById('overlay');
     const overlayBtn = document.getElementById('overlayNewGame');
 
     newGameBtn.addEventListener('click', () => newGame());
     overlayBtn.addEventListener('click', () => newGame());
+    sizeSelect.addEventListener('change', () => {
+      const [r, c] = sizeSelect.value.split('x').map(Number);
+      ROWS = r; COLS = c;
+      newGame();
+    });
 
     function randInt(n) { return Math.floor(Math.random() * n); }
     function createDiv(cls) { const el = document.createElement('div'); el.className = cls; return el; }
@@ -261,6 +280,8 @@
     function renderBoard() {
       // Build DOM once if empty
       if (boardEl.childElementCount === 0) {
+        // set grid columns according to COLS
+        boardEl.style.gridTemplateColumns = `repeat(${COLS}, var(--cell-size))`;
         for (let r = 0; r < ROWS; r++) {
           for (let c = 0; c < COLS; c++) {
             const cell = createDiv('cell');
@@ -447,16 +468,14 @@
     }
 
     function newGame() {
+      // Clear board DOM so that cell count matches new size
+      boardEl.innerHTML = '';
       board = createRandomBoard(ROWS, COLS, TYPES);
       score = 0; gameState = 'playing';
       statusEl.textContent = 'プレイ中：同じ色が2つ以上つながったグループをクリック/タップで削除できます';
       overlayEl.classList.remove('show');
       overlayEl.setAttribute('aria-hidden', 'true');
-      // reset DOM if already built
-      if (boardEl.hasChildNodes()) {
-        const cells = boardEl.children; let idx = 0;
-        for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++, idx++) cells[idx].classList.remove('highlight');
-      }
+      // DOM will be rebuilt by renderBoard()
       renderBoard();
       updateScore();
     }

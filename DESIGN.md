@@ -19,6 +19,7 @@
   - タイトル: "Same Game"
   - スコア: 現在スコアを数値表示
   - 新しいゲーム: 盤面再生成ボタン
+  - 盤面サイズセレクト: ドロップダウン（10×10［既定］/ 10×15 / 15×10 / 15×15）
 - **メイン**
   - 盤面グリッド: CSS Grid で N×M（既定例 10×15）
   - 終了メッセージ: 画面中央のモーダルオーバーレイで表示し、モーダル内に「新しいゲーム」ボタンを配置
@@ -29,12 +30,13 @@
 
 ## 3. データ設計
 - **定数**
-  - `ROWS`, `COLS`（例: ROWS=15, COLS=10）
+  - `ROWS`, `COLS` は動的に変更可能（既定: ROWS=10, COLS=10）
   - `TILE_TYPES=5`
   - `SCORE_UNIT=10`
 - **盤面表現**
   - 2次元配列 `board[rows][cols]`。要素は `null`（空）または `{ type: 0..4 }`。
   - 表示は CSS Grid 上にセル DOM を割り当て、`data-row`, `data-col`, `data-type` を付与。
+  - `#board` の `grid-template-columns` を `repeat(COLS, var(--cell-size))` に設定（JSで動的反映）。
 - **状態**
   - `score: number`
   - `gameState: 'playing' | 'ended'`
@@ -73,6 +75,7 @@
 4. 反映: begin batch → `removeGroup` → `applyGravity` → `shiftColumns` → end batch（DOM 再描画）
 5. 終了判定: `hasAnyMoves()` でなければ `endGame()` を実行し、`#overlay.show` を表示（`aria-hidden=false`）
 6. 新規ゲーム: `newGame()` で再初期化し、`#overlay` から `show` を外す（`aria-hidden=true`）
+7. 盤面サイズ変更: `sizeSelect.change` → `ROWS/COLS` を更新 → `newGame()` を呼び出し（スコアリセット、`#board` を再構築し、グリッド列数を更新）
 
 ## 7. DOM/描画方針
 - 盤面の DOM ノードは固定長で再利用（座標→index を決定）。
