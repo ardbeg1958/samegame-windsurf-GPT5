@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME}"
+          echo "Packaging for tag ${VERSION}"
+          # Standalone HTML copy
+          cp -f index.html "samegame-${VERSION}.html"
+          # Source archive
+          zip -q -r "samegame-${VERSION}-source.zip" \
+            index.html README.md AGENTS.md CHANGELOG.md DESIGN.md REQ.md DEVPROCESS.md DEVSTORY.md || true
+          # Optional distribution README (versioned copy if present)
+          if [ -f README-DIST-JP-EN.md ]; then
+            cp README-DIST-JP-EN.md "README-DIST-${VERSION}.md"
+          fi
+          # Checksums
+          sha256sum "samegame-${VERSION}.html" > "samegame-${VERSION}.html.sha256"
+          if [ -f "samegame-${VERSION}-source.zip" ]; then
+            sha256sum "samegame-${VERSION}-source.zip" > "samegame-${VERSION}-source.zip.sha256"
+          fi
+          cat "samegame-${VERSION}.html.sha256" \
+              "samegame-${VERSION}-source.zip.sha256" 2>/dev/null \
+              > "CHECKSUMS-${VERSION}.txt" || true
+
+      - name: Create/Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            samegame-*.html
+            samegame-*.zip
+            *.sha256
+            CHECKSUMS-*.txt
+            README-DIST-*.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
