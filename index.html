@@ -305,7 +305,8 @@
       const available = containerContentWidth - boardPaddingLR - gapPx * (COLS - 1);
       if (available > 0) {
         const raw = Math.floor(available / COLS);
-        const clamped = Math.max(36, Math.min(44, raw)); // keep within design range
+        // Keep within design range (match CSS clamp minimum of 28px)
+        const clamped = Math.max(28, Math.min(44, raw));
         boardEl.style.setProperty('--cell-size', `${clamped}px`);
       }
     }
