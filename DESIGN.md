@@ -31,10 +31,10 @@
 ## 3. データ設計
 - **定数**
   - `ROWS`, `COLS` は動的に変更可能（既定: ROWS=10, COLS=10）
-  - `TILE_TYPES=5`
+  - `TILE_TYPES=4`
   - `SCORE_UNIT=10`
 - **盤面表現**
-  - 2次元配列 `board[rows][cols]`。要素は `null`（空）または `{ type: 0..4 }`。
+  - 2次元配列 `board[rows][cols]`。要素は `null`（空）または `{ type: 0..3 }`。
   - 表示は CSS Grid 上にセル DOM を割り当て、`data-row`, `data-col`, `data-type` を付与。
   - `#board` の `grid-template-columns` を `repeat(COLS, var(--cell-size))` に設定（JSで動的反映）。
 - **状態**
@@ -43,13 +43,12 @@
   - （UI）モーダル表示は DOM の `#overlay` に `show` クラス付与/除去と `aria-hidden` 切替で制御
 
 ## 4. 駒の種類と表現
-- 種類: 5 種（●/▲/■/◆/★）
+- 種類: 4 種（●/◆/★/■）
 - 視覚表現（例）
   - type 0: 赤 丸（circle）
-  - type 1: 青緑 三角（triangle）
-  - type 2: 青 四角（square）
-  - type 3: 緑 ダイヤ（diamond）
-  - type 4: 黄 星（star）
+  - type 1: 緑 ダイヤ（diamond）
+  - type 2: 黄 星（star）
+  - type 3: 青 四角（square）
 - 実装案: CSS クラスで形状表現（border/transform） or 絵文字。可読性と軽さを優先。
 
 ## 5. 主要アルゴリズム
