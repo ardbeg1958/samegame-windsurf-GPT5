@@ -62,6 +62,18 @@
 5. **新しいゲーム**
    - 「新しいゲーム」ボタンでいつでもリスタート可能
 
+## 🌐 GitHub Pages に公開（簡易）
+
+1. リポジトリを GitHub に push（既に済みなら不要）
+2. GitHub → 対象リポジトリ → Settings → Pages
+3. Build and deployment → Source: "Deploy from a branch"
+4. Branch: `main`、Folder: `/ (root)` を選択 → Save
+5. 数分後に `https://<ユーザー名>.github.io/<リポジトリ名>/` で公開
+
+補足:
+- 代替: `docs/` を公開対象にする場合は `index.html` を `docs/` へ移動し、Folder に `/docs` を指定します。
+- パスは相対指定（例: `./file.png`）にすると `/repo/` 配下でも動作します。
+
 ## 📱 対応デバイス
 
 ### デスクトップ
