@@ -1,0 +1,39 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  lint-validate-a11y:
+    name: HTML validate and basic link check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Configure html-validate rules
+        run: |
+          cat > .htmlvalidate.json << 'JSON'
+          {
+            "extends": ["html-validate:standard"],
+            "rules": {
+              "no-inline-style": "off",
+              "void-style": "off",
+              "attribute-boolean-style": "off"
+            }
+          }
+          JSON
+
+      - name: Run html-validate
+        run: npx -y @html-validate/cli@8 html-validate index.html
+
+      - name: Check links (local file)
+        run: npx -y linkinator@4 index.html --silent
+
