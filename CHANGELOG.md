@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.2.1 — 2025-08-09
+
+### Release Summary
+- 目的: サイズ変更時（10×10→10×15 等）の横はみ出しを解消。
+
+### Bug Fixes
+- 盤面セルの最小サイズを 36px→28px に調整し、15 列時でもボード内に収まるように更新。
+- `updateGridMetrics()` の JS 側の下限を CSS の `clamp(28px, 5.2vw, 44px)` と整合。
+
+### Developer Notes
+- 影響範囲: `index.html`（グリッド計算の下限値）。
+- 互換性: 10×10 など従来サイズには視覚的影響なし。
+- コミット: `8451be4` fix(board): prevent overflow at 10×15 by lowering min cell size to 28px。
+
+### Verification
+- サイズセレクトで 10×15 / 15×15 を選んでも横スクロールや駒のはみ出しがない。
+- ウィンドウ幅を縮小・拡大してもボード内に収まる。
+- キーボード操作・スコア更新に回 regress なし。コンソールエラーなし。
+
 ## v0.2.0 — 2025-08-09
 
 ### Release Summary
