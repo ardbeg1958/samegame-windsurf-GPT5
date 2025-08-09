@@ -185,6 +185,13 @@
     .modal h2 { margin: 0 0 8px; font-size: 20px; }
     .modal p { margin: 0 0 16px; color: var(--muted); }
     .modal .actions { display: flex; justify-content: center; gap: 10px; }
+
+    /* Reduced motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+      .piece, .btn { transition: none !important; filter: none !important; }
+      .cell:hover .piece, .cell:hover .diamond { transform: none !important; }
+      .piece.vanish { transition: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -217,14 +224,14 @@
         <span class="dot" style="background: var(--c-yellow);"></span>
       </div>
       <div class="board" id="board" aria-label="盤面"></div>
-      <div id="status" style="text-align:center; color: var(--muted); margin-top: 10px; font-size: 13px;">プレイ中：同じ色が2つ以上つながったグループをクリック/タップで削除できます</div>
+      <div id="status" role="status" aria-live="polite" style="text-align:center; color: var(--muted); margin-top: 10px; font-size: 13px;">プレイ中：同じ色が2つ以上つながったグループをクリック/タップで削除できます</div>
     </div>
   </main>
 
   <!-- End game overlay -->
-  <div class="overlay" id="overlay" aria-hidden="true" role="dialog" aria-modal="true" inert>
+  <div class="overlay" id="overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="endTitle" inert>
     <div class="modal">
-      <h2>ゲーム終了</h2>
+      <h2 id="endTitle">ゲーム終了</h2>
       <p>削除可能なグループはありません。</p>
       <div class="actions">
         <button class="btn" type="button" id="overlayNewGame">新しいゲーム</button>
@@ -247,6 +254,7 @@
     let score = 0;
     let gameState = 'playing'; // 'playing' | 'ended'
     let hoverGroup = null; // array of [r,c]
+    let focusRow = 0, focusCol = 0; // keyboard navigation state
 
     const boardEl = document.getElementById('board');
     const scoreEl = document.querySelector('.score');
@@ -274,6 +282,10 @@
         for (let c = 0; c < cols; c++) {
           b[r][c] = randInt(types);
         }
+        // initialize active cell for keyboard access
+        focusRow = Math.min(focusRow, ROWS - 1);
+        focusCol = Math.min(focusCol, COLS - 1);
+        setActiveCell(focusRow, focusCol, /*focus*/ false);
       }
       return b;
     }
@@ -297,7 +309,7 @@
       const available = containerContentWidth - boardPaddingLR - gapPx * (COLS - 1);
       if (available > 0) {
         const raw = Math.floor(available / COLS);
-        const clamped = Math.max(28, Math.min(44, raw)); // keep within design range
+        const clamped = Math.max(36, Math.min(44, raw)); // keep within design range
         boardEl.style.setProperty('--cell-size', `${clamped}px`);
       }
     }
@@ -312,6 +324,7 @@
             const cell = createDiv('cell');
             cell.dataset.row = String(r);
             cell.dataset.col = String(c);
+            cell.setAttribute('tabindex', '-1');
             // event listeners
             cell.addEventListener('mouseenter', onCellEnter);
             cell.addEventListener('mouseleave', onCellLeave);
@@ -344,6 +357,20 @@
       }
       // ensure metrics after potential DOM changes
       updateGridMetrics();
+    }
+
+    function setActiveCell(r, c, focus = false) {
+      r = Math.max(0, Math.min(ROWS - 1, r));
+      c = Math.max(0, Math.min(COLS - 1, c));
+      const prev = boardEl.querySelector('.cell[tabindex="0"]');
+      if (prev) prev.setAttribute('tabindex', '-1');
+      const idx = r * COLS + c;
+      const cell = boardEl.children[idx];
+      if (cell) {
+        cell.setAttribute('tabindex', '0');
+        focusRow = r; focusCol = c;
+        if (focus) cell.focus();
+      }
     }
 
     function applyTypeClass(pieceEl, type) {
@@ -493,6 +520,10 @@
       overlayEl.classList.add('show');
       overlayEl.removeAttribute('inert');
       overlayEl.setAttribute('aria-hidden', 'false');
+      // inert background sections
+      for (const el of [document.querySelector('header'), document.querySelector('main'), document.querySelector('footer')]) {
+        if (el) el.setAttribute('inert', '');
+      }
       // move focus into the dialog for SR users
       requestAnimationFrame(() => overlayBtn.focus());
     }
@@ -509,6 +540,10 @@
       overlayEl.classList.remove('show');
       overlayEl.setAttribute('aria-hidden', 'true');
       overlayEl.setAttribute('inert', '');
+      // remove inert from background sections
+      for (const el of [document.querySelector('header'), document.querySelector('main'), document.querySelector('footer')]) {
+        if (el) el.removeAttribute('inert');
+      }
       // DOM will be rebuilt by renderBoard()
       renderBoard();
       updateScore();
@@ -516,6 +551,44 @@
 
     // handle window resize to keep grid fitted
     window.addEventListener('resize', () => updateGridMetrics());
+
+    // Keyboard navigation on the board (roving tabindex)
+    boardEl.addEventListener('keydown', (e) => {
+      if (gameState !== 'playing') return;
+      const key = e.key;
+      const isArrow = key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight';
+      if (isArrow) {
+        e.preventDefault();
+        let r = focusRow, c = focusCol;
+        if (key === 'ArrowUp') r = Math.max(0, r - 1);
+        if (key === 'ArrowDown') r = Math.min(ROWS - 1, r + 1);
+        if (key === 'ArrowLeft') c = Math.max(0, c - 1);
+        if (key === 'ArrowRight') c = Math.min(COLS - 1, c + 1);
+        setActiveCell(r, c, /*focus*/ true);
+        return;
+      }
+      if (key === 'Enter' || key === ' ') {
+        e.preventDefault();
+        const idx = focusRow * COLS + focusCol;
+        const cell = boardEl.children[idx];
+        if (cell) cell.click();
+      }
+    });
+
+    // Trap focus within the overlay when visible
+    overlayEl.addEventListener('keydown', (e) => {
+      if (!overlayEl.classList.contains('show')) return;
+      if (e.key !== 'Tab') return;
+      const focusables = overlayEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
 
     // init
     newGame();
