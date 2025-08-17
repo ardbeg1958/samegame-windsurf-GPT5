@@ -77,9 +77,37 @@
     .btn:active { transform: translateY(1px) scale(.99); }
 
     /* Focus visibility for keyboard users */
-    .btn:focus-visible, .select:focus-visible, .cell:focus-visible {
+    .btn:focus-visible, .select:focus-visible, .cell:focus-visible, 
+    .high-score-row:focus-visible, .empty-scores:focus-visible,
+    h2:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
+    }
+
+    /* Enhanced focus styles for high score table */
+    .high-score-row:focus {
+      background: #e8f2ff;
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    .empty-scores:focus {
+      background: #f0f3ff;
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    /* Screen reader only content */
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
     }
 
     main { display: grid; place-items: center; padding: 6px 14px 20px; }
@@ -183,11 +211,434 @@
     .modal p { margin: 0 0 16px; color: var(--muted); }
     .modal .actions { display: flex; justify-content: center; gap: 10px; }
 
+    /* High Score Modal Styles */
+    .high-score-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 16px 0;
+      border-radius: 8px;
+      background: #f8f9ff;
+      border: 1px solid #e3e7ff;
+    }
+
+    .high-score-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .high-score-table th {
+      background: #f0f3ff;
+      color: var(--text);
+      font-weight: 600;
+      padding: 10px 8px;
+      text-align: left;
+      border-bottom: 2px solid #d7ddff;
+      position: sticky;
+      top: 0;
+    }
+
+    .high-score-table td {
+      padding: 8px;
+      border-bottom: 1px solid #e8ebff;
+    }
+
+    .high-score-row:hover {
+      background: #f5f7ff;
+    }
+
+    .rank-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      font-weight: bold;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .rank-1 { 
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #333;
+      box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+    }
+    .rank-2 { 
+      background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+      color: #333;
+      box-shadow: 0 2px 4px rgba(192, 192, 192, 0.3);
+    }
+    .rank-3 { 
+      background: linear-gradient(135deg, #cd7f32, #daa520);
+      color: white;
+      box-shadow: 0 2px 4px rgba(205, 127, 50, 0.3);
+    }
+
+    .rank-other {
+      background: #e8ebff;
+      color: var(--muted);
+    }
+
+    .score-cell {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .date-cell {
+      font-size: 0.85em;
+      color: var(--muted);
+    }
+
+    .board-size-cell {
+      font-size: 0.9em;
+      color: var(--text);
+      background: #f0f3ff;
+      border-radius: 4px;
+      padding: 2px 6px;
+      display: inline-block;
+    }
+
+    .empty-scores {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(180deg, #8a9ba8, #6b7c89);
+      box-shadow: 0 6px 16px rgba(139, 155, 168, 0.35), 0 0 0 1px rgba(255,255,255,.06) inset;
+    }
+
+    /* New Record Notification Styles */
+    .new-record-notification {
+      margin: 16px 0;
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 600;
+      animation: newRecordPulse 2s ease-in-out;
+    }
+
+    .new-record-badge {
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      color: white;
+      box-shadow: 0 4px 16px rgba(255, 107, 107, 0.4);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .new-record-top3 {
+      background: linear-gradient(135deg, #ffd700, #ffed4e, #ff6b6b);
+      color: #333;
+      box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      animation: newRecordCelebration 3s ease-in-out;
+    }
+
+    .new-record-first {
+      background: linear-gradient(135deg, #4b84ff, #6c8bff, #a07bff);
+      color: white;
+      box-shadow: 0 4px 16px rgba(75, 132, 255, 0.4);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .record-rank {
+      font-size: 1.2em;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .record-message {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+
+    @keyframes newRecordPulse {
+      0%, 100% { transform: scale(1); }
+      25% { transform: scale(1.02); }
+      50% { transform: scale(1.05); }
+      75% { transform: scale(1.02); }
+    }
+
+    @keyframes newRecordCelebration {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      10% { transform: scale(1.05) rotate(1deg); }
+      20% { transform: scale(1.1) rotate(-1deg); }
+      30% { transform: scale(1.05) rotate(1deg); }
+      40% { transform: scale(1.02) rotate(0deg); }
+      50% { transform: scale(1.08) rotate(-0.5deg); }
+      60% { transform: scale(1.05) rotate(0.5deg); }
+      70% { transform: scale(1.02) rotate(0deg); }
+      80% { transform: scale(1.03) rotate(0deg); }
+      90% { transform: scale(1.01) rotate(0deg); }
+    }
+
+    /* Responsive Design for High Score Modal */
+    @media (max-width: 480px) {
+      .modal {
+        width: 95vw;
+        padding: 16px 12px 14px;
+        margin: 0 8px;
+      }
+
+      .high-score-table {
+        font-size: 12px;
+      }
+
+      .high-score-table th,
+      .high-score-table td {
+        padding: 6px 4px;
+      }
+
+      .rank-badge {
+        padding: 1px 6px;
+        font-size: 0.7em;
+        min-width: 16px;
+      }
+
+      .board-size-cell {
+        font-size: 0.8em;
+        padding: 1px 4px;
+      }
+
+      .new-record-notification {
+        padding: 12px;
+        margin: 12px 0;
+      }
+
+      .record-rank {
+        font-size: 1.1em;
+      }
+
+      .record-message {
+        font-size: 0.8em;
+      }
+
+      .modal .actions {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 12px 14px;
+      }
+    }
+
+    @media (max-width: 320px) {
+      .high-score-table th,
+      .high-score-table td {
+        padding: 4px 2px;
+      }
+
+      .high-score-table {
+        font-size: 11px;
+      }
+
+      .rank-badge {
+        font-size: 0.6em;
+        padding: 1px 4px;
+        min-width: 14px;
+      }
+
+      .date-cell {
+        font-size: 0.75em;
+      }
+
+      .board-size-cell {
+        font-size: 0.7em;
+        padding: 1px 3px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .modal {
+        width: min(85vw, 500px);
+      }
+
+      .high-score-list {
+        max-height: 400px;
+      }
+
+      .high-score-table {
+        font-size: 15px;
+      }
+
+      .high-score-table th,
+      .high-score-table td {
+        padding: 10px 12px;
+      }
+
+      .new-record-notification {
+        padding: 20px;
+        margin: 20px 0;
+      }
+
+      .record-rank {
+        font-size: 1.3em;
+        margin-bottom: 10px;
+      }
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .high-score-row:hover {
+        background: #f5f7ff;
+        transition: background-color 0.2s ease;
+      }
+
+      .btn:hover {
+        filter: brightness(1.05);
+      }
+
+      .rank-badge:hover {
+        transform: scale(1.05);
+        transition: transform 0.2s ease;
+      }
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .high-score-row:active {
+        background: #f0f3ff;
+      }
+
+      .btn:active {
+        transform: translateY(1px) scale(0.98);
+      }
+    }
+
+    /* Error Notification Styles */
+    .error-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      max-width: 400px;
+      z-index: 1000;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      animation: errorSlideIn 0.3s ease-out;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .error-recovered {
+      background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+      border: 2px solid #f39c12;
+      color: #8b4513;
+    }
+
+    .error-critical {
+      background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+      border: 2px solid #dc3545;
+      color: #721c24;
+    }
+
+    .error-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .error-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .error-message {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    .error-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: background-color 0.2s ease;
+    }
+
+    .error-recovered .error-close {
+      color: #8b4513;
+    }
+
+    .error-recovered .error-close:hover {
+      background: rgba(139, 69, 19, 0.1);
+    }
+
+    .error-critical .error-close {
+      color: #721c24;
+    }
+
+    .error-critical .error-close:hover {
+      background: rgba(114, 28, 36, 0.1);
+    }
+
+    .error-close:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+
+    @keyframes errorSlideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* Mobile responsive error notifications */
+    @media (max-width: 480px) {
+      .error-notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+      }
+
+      .error-content {
+        padding: 12px;
+        gap: 10px;
+      }
+
+      .error-message {
+        font-size: 13px;
+      }
+
+      .error-icon {
+        font-size: 16px;
+      }
+
+      .error-close {
+        width: 20px;
+        height: 20px;
+        font-size: 18px;
+      }
+    }
+
     /* Reduced motion preferences */
     @media (prefers-reduced-motion: reduce) {
       .piece, .btn { transition: none !important; filter: none !important; }
       .cell:hover .piece, .cell:hover .diamond { transform: none !important; }
       .piece.vanish { transition: none !important; }
+      .new-record-notification { animation: none !important; }
+      .new-record-badge, .new-record-top3, .new-record-first { animation: none !important; }
+      .high-score-row { transition: none !important; }
+      .rank-badge { transition: none !important; transform: none !important; }
+      .error-notification { animation: none !important; }
+      .error-close { transition: none !important; }
     }
   </style>
 </head>
@@ -206,6 +657,7 @@
         <option value="15x15">15×15</option>
       </select>
       <div class="score" aria-live="polite">Score: 0</div>
+      <button id="highScoreBtn" class="btn" type="button" aria-label="ハイスコアランキングを表示 (ショートカット: Ctrl+H)">🏆 ハイスコア</button>
       <button class="btn" type="button">新しいゲーム</button>
     </div>
   </header>
@@ -229,8 +681,26 @@
     <div class="modal">
       <h2 id="endTitle">ゲーム終了</h2>
       <p>削除可能なグループはありません。</p>
+      <div id="newRecordContainer" class="new-record-container" style="display: none;" aria-live="polite">
+        <!-- New record notification will be inserted here -->
+      </div>
       <div class="actions">
-        <button class="btn" type="button" id="overlayNewGame">新しいゲーム</button>
+        <button class="btn" type="button" id="overlayNewGame" aria-label="新しいゲームを開始">新しいゲーム</button>
+        <button class="btn" type="button" id="overlayHighScore" style="display: none;" aria-label="ハイスコアランキングを表示">ハイスコアを見る</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- High Score overlay -->
+  <div class="overlay" id="highScoreOverlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="highScoreTitle" inert>
+    <div class="modal">
+      <h2 id="highScoreTitle" tabindex="-1" aria-describedby="highScoreList">🏆 ハイスコアランキング</h2>
+      <div id="highScoreList" class="high-score-list">
+        <!-- ランキングテーブルが動的に生成される -->
+      </div>
+      <div class="actions">
+        <button id="clearScoresBtn" class="btn btn-secondary" type="button" aria-describedby="highScoreTitle" aria-label="すべてのハイスコア記録をリセット">記録をリセット</button>
+        <button id="closeHighScoreBtn" class="btn" type="button" aria-label="ハイスコアランキングを閉じる">閉じる</button>
       </div>
     </div>
   </div>
@@ -240,6 +710,537 @@
   </footer>
 
   <script>
+    // HighScoreManager class for managing local storage high scores
+    class HighScoreManager {
+      constructor() {
+        this.storageKey = 'samegame-highscores';
+        this.maxEntries = 10;
+      }
+
+      // Save a new score to local storage
+      saveScore(score, boardSize) {
+        // Check if storage is available first
+        if (!this.isStorageAvailable()) {
+          this._showErrorMessage('ハイスコア記録機能が利用できません。ブラウザの設定を確認してください。');
+          return false;
+        }
+
+        try {
+          // Validate input parameters
+          if (typeof score !== 'number' || score < 0 || !isFinite(score)) {
+            throw new Error('Invalid score: must be a finite non-negative number');
+          }
+          if (typeof boardSize !== 'string' || !boardSize.match(/^\d+x\d+$/)) {
+            throw new Error('Invalid board size: must be in format "NxN"');
+          }
+
+          const scores = this.getHighScores();
+          const newEntry = {
+            score: score,
+            date: new Date().toISOString(),
+            boardSize: boardSize
+          };
+
+          scores.push(newEntry);
+          scores.sort((a, b) => b.score - a.score);
+          
+          // Keep only top entries
+          if (scores.length > this.maxEntries) {
+            scores.splice(this.maxEntries);
+          }
+
+          // Try to save with retry logic for quota errors
+          this._saveWithRetry({ scores });
+          return true;
+        } catch (error) {
+          console.error('Failed to save score:', error);
+          this._handleStorageError(error);
+          return false;
+        }
+      }
+
+      // Save data with retry logic for quota exceeded errors
+      _saveWithRetry(data, retryCount = 0) {
+        const maxRetries = 3;
+        
+        try {
+          localStorage.setItem(this.storageKey, JSON.stringify(data));
+        } catch (error) {
+          if (error.name === 'QuotaExceededError' && retryCount < maxRetries) {
+            console.warn(`Storage quota exceeded (retry ${retryCount + 1}/${maxRetries})`);
+            
+            // First retry: try to manage storage space automatically
+            if (retryCount === 0) {
+              const spaceFreed = this._manageStorageSpace();
+              if (spaceFreed) {
+                this._saveWithRetry(data, retryCount + 1);
+                return;
+              }
+            }
+            
+            // Subsequent retries: progressively reduce data
+            const currentScores = data.scores || [];
+            let targetSize;
+            
+            if (retryCount === 1 && currentScores.length > 5) {
+              targetSize = 5;
+            } else if (retryCount === 2 && currentScores.length > 3) {
+              targetSize = 3;
+            } else if (currentScores.length > 1) {
+              targetSize = 1;
+            } else {
+              // Can't reduce further, throw error
+              throw error;
+            }
+            
+            const reducedData = { scores: currentScores.slice(0, targetSize) };
+            console.warn(`Reducing to ${targetSize} entries (retry ${retryCount + 1})`);
+            this._saveWithRetry(reducedData, retryCount + 1);
+          } else {
+            // Re-throw for other errors or max retries exceeded
+            throw error;
+          }
+        }
+      }
+
+      // Get all high scores from local storage
+      getHighScores() {
+        try {
+          const data = localStorage.getItem(this.storageKey);
+          if (!data) {
+            return [];
+          }
+
+          const parsed = JSON.parse(data);
+          
+          // Use enhanced validation with repair capabilities
+          const validatedData = this._validateAndRepairData(parsed);
+          
+          // If data was repaired, save the corrected version
+          if (JSON.stringify(parsed) !== JSON.stringify(validatedData)) {
+            try {
+              localStorage.setItem(this.storageKey, JSON.stringify(validatedData));
+              console.info('Repaired and saved corrected high score data');
+            } catch (saveError) {
+              console.warn('Could not save repaired data:', saveError);
+            }
+          }
+
+          return validatedData.scores;
+        } catch (error) {
+          console.error('Failed to load high scores:', error);
+          this._handleStorageError(error);
+          return [];
+        }
+      }
+
+      // Check if a score is a new record and return ranking info
+      isNewRecord(score) {
+        try {
+          if (typeof score !== 'number' || score < 0) {
+            return { isNew: false, rank: null };
+          }
+
+          const scores = this.getHighScores();
+          
+          // If no scores exist, this is the first record
+          if (scores.length === 0) {
+            return { isNew: true, rank: 1, isFirst: true };
+          }
+
+          // Find where this score would rank
+          let rank = 1;
+          for (const entry of scores) {
+            if (score > entry.score) {
+              break;
+            }
+            rank++;
+          }
+
+          // It's a new record if it ranks in top maxEntries or if we have fewer than maxEntries
+          const isNew = rank <= this.maxEntries || scores.length < this.maxEntries;
+          
+          return { 
+            isNew, 
+            rank: isNew ? rank : null,
+            isTopThree: isNew && rank <= 3,
+            isFirst: false
+          };
+        } catch (error) {
+          console.error('Failed to check new record:', error);
+          return { isNew: false, rank: null };
+        }
+      }
+
+      // Clear all high scores
+      clearScores() {
+        // Check if storage is available first
+        if (!this.isStorageAvailable()) {
+          this._showErrorMessage('ハイスコア記録機能が利用できません。ブラウザの設定を確認してください。');
+          return false;
+        }
+
+        try {
+          localStorage.removeItem(this.storageKey);
+          
+          // Verify the removal was successful
+          const testData = localStorage.getItem(this.storageKey);
+          if (testData !== null) {
+            throw new Error('Failed to remove data from storage');
+          }
+          
+          return true;
+        } catch (error) {
+          console.error('Failed to clear scores:', error);
+          this._handleStorageError(error);
+          return false;
+        }
+      }
+
+      // Handle storage errors (quota exceeded, storage disabled, etc.)
+      _handleStorageError(error) {
+        let userMessage = '';
+        let recovered = false;
+
+        if (error.name === 'QuotaExceededError') {
+          // Try to free up space by removing older entries
+          try {
+            const scores = this.getHighScores();
+            if (scores.length > 5) {
+              const reducedScores = scores.slice(0, 5);
+              localStorage.setItem(this.storageKey, JSON.stringify({ scores: reducedScores }));
+              userMessage = 'ストレージ容量不足のため、古いハイスコア記録を削除しました。';
+              recovered = true;
+            } else {
+              // If we can't reduce further, clear all data
+              localStorage.removeItem(this.storageKey);
+              userMessage = 'ストレージ容量不足のため、ハイスコア記録をリセットしました。';
+            }
+          } catch (retryError) {
+            console.error('Failed to recover from quota error:', retryError);
+            userMessage = 'ストレージ容量不足です。ハイスコア機能が一時的に利用できません。';
+          }
+        } else if (error.name === 'SecurityError') {
+          console.warn('Local storage is disabled or not available');
+          userMessage = 'ブラウザの設定により、ハイスコア記録機能が無効になっています。';
+        } else if (error.message && error.message.includes('Invalid data structure')) {
+          // Handle data corruption
+          try {
+            localStorage.removeItem(this.storageKey);
+            userMessage = 'ハイスコアデータが破損していたため、記録をリセットしました。';
+            recovered = true;
+          } catch (removeError) {
+            console.error('Failed to remove corrupted data:', removeError);
+            userMessage = 'ハイスコアデータの復旧に失敗しました。ブラウザを再起動してください。';
+          }
+        } else {
+          // Generic error handling
+          try {
+            localStorage.removeItem(this.storageKey);
+            userMessage = 'ハイスコア機能でエラーが発生しました。記録をリセットしました。';
+          } catch (removeError) {
+            console.error('Failed to remove corrupted data:', removeError);
+            userMessage = 'ハイスコア機能でエラーが発生しました。ブラウザを再起動してください。';
+          }
+        }
+
+        // Display error message to user
+        this._showErrorMessage(userMessage, recovered);
+      }
+
+      // Show error message to user with appropriate styling and accessibility
+      _showErrorMessage(message, isRecovered = false) {
+        // Create error notification element
+        const errorNotification = document.createElement('div');
+        errorNotification.className = `error-notification ${isRecovered ? 'error-recovered' : 'error-critical'}`;
+        errorNotification.setAttribute('role', 'alert');
+        errorNotification.setAttribute('aria-live', 'assertive');
+        
+        const errorIcon = isRecovered ? '⚠️' : '❌';
+        errorNotification.innerHTML = `
+          <div class="error-content">
+            <span class="error-icon">${errorIcon}</span>
+            <span class="error-message">${message}</span>
+            <button class="error-close" aria-label="エラー通知を閉じる" type="button">×</button>
+          </div>
+        `;
+
+        // Add to page
+        document.body.appendChild(errorNotification);
+
+        // Add close functionality
+        const closeBtn = errorNotification.querySelector('.error-close');
+        closeBtn.addEventListener('click', () => {
+          errorNotification.remove();
+        });
+
+        // Auto-remove after 8 seconds for recovered errors, 12 seconds for critical
+        const autoRemoveDelay = isRecovered ? 8000 : 12000;
+        setTimeout(() => {
+          if (errorNotification.parentNode) {
+            errorNotification.remove();
+          }
+        }, autoRemoveDelay);
+
+        // Announce to screen readers
+        announceToScreenReader(message, 'assertive');
+
+        // Log for debugging
+        console.warn('HighScore Error:', message);
+      }
+
+      // Enhanced data validation with recovery attempts
+      _validateAndRepairData(data) {
+        try {
+          if (!data || typeof data !== 'object') {
+            throw new Error('Invalid data structure: not an object');
+          }
+
+          if (!Array.isArray(data.scores)) {
+            // Try to repair if scores is missing but data exists
+            if (typeof data === 'object' && Object.keys(data).length > 0) {
+              console.warn('Repairing data structure: missing scores array');
+              return { scores: [] };
+            }
+            throw new Error('Invalid data structure: scores is not an array');
+          }
+
+          // Validate and repair individual score entries
+          const validScores = [];
+          let repairedCount = 0;
+          let skippedCount = 0;
+
+          for (const entry of data.scores) {
+            if (!entry || typeof entry !== 'object') {
+              repairedCount++;
+              skippedCount++;
+              continue;
+            }
+
+            // Repair score field - be more strict about valid scores
+            if (typeof entry.score !== 'number' || entry.score < 0 || !isFinite(entry.score) || entry.score > 999999999) {
+              repairedCount++;
+              skippedCount++;
+              continue;
+            }
+
+            // Repair date field with more robust validation
+            let date = entry.date;
+            if (typeof date !== 'string' || !date) {
+              date = new Date().toISOString();
+              repairedCount++;
+            } else {
+              // Validate date format and ensure it's not in the future
+              const parsedDate = new Date(date);
+              const now = new Date();
+              if (isNaN(parsedDate.getTime()) || parsedDate > now) {
+                date = new Date().toISOString();
+                repairedCount++;
+              }
+              // Ensure date is not too far in the past (before 2020)
+              else if (parsedDate.getFullYear() < 2020) {
+                date = new Date().toISOString();
+                repairedCount++;
+              }
+            }
+
+            // Repair boardSize field with validation of supported sizes
+            let boardSize = entry.boardSize;
+            const validBoardSizes = ['10x10', '10x15', '15x10', '15x15'];
+            if (typeof boardSize !== 'string' || !validBoardSizes.includes(boardSize)) {
+              boardSize = '10x10'; // Default board size
+              repairedCount++;
+            }
+
+            validScores.push({
+              score: entry.score,
+              date: date,
+              boardSize: boardSize
+            });
+          }
+
+          // If we repaired some entries, log it
+          if (repairedCount > 0) {
+            console.warn(`Repaired ${repairedCount} corrupted score entries (${skippedCount} entries were completely invalid and removed)`);
+          }
+
+          // Sort scores to ensure proper order
+          validScores.sort((a, b) => b.score - a.score);
+
+          // Limit to max entries
+          if (validScores.length > this.maxEntries) {
+            validScores.splice(this.maxEntries);
+          }
+
+          return { scores: validScores };
+        } catch (error) {
+          console.error('Data validation failed:', error);
+          throw error;
+        }
+      }
+
+      // Get storage availability status with comprehensive testing
+      isStorageAvailable() {
+        try {
+          // Check if localStorage exists
+          if (typeof localStorage === 'undefined' || localStorage === null) {
+            return false;
+          }
+
+          // Check if we're in a private browsing mode or storage is disabled
+          if (typeof Storage === 'undefined') {
+            return false;
+          }
+
+          // Test basic functionality with error handling for each step
+          const testKey = 'samegame-storage-test-' + Math.random().toString(36).substr(2, 9);
+          const testValue = 'test-data-' + Date.now() + '-' + Math.random();
+          
+          // Test write with quota check
+          try {
+            localStorage.setItem(testKey, testValue);
+          } catch (writeError) {
+            // Handle specific write errors
+            if (writeError.name === 'QuotaExceededError') {
+              console.warn('Storage quota exceeded during availability test');
+            }
+            return false;
+          }
+          
+          // Test read
+          const retrievedValue = localStorage.getItem(testKey);
+          if (retrievedValue !== testValue) {
+            // Clean up failed test
+            try {
+              localStorage.removeItem(testKey);
+            } catch (cleanupError) {
+              console.warn('Failed to cleanup test key after read failure:', cleanupError);
+            }
+            return false;
+          }
+          
+          // Test delete
+          try {
+            localStorage.removeItem(testKey);
+          } catch (deleteError) {
+            console.warn('Failed to delete test key:', deleteError);
+            return false;
+          }
+          
+          // Verify deletion
+          if (localStorage.getItem(testKey) !== null) {
+            return false;
+          }
+          
+          // Additional check: ensure we can access localStorage.length
+          try {
+            const length = localStorage.length;
+            if (typeof length !== 'number') {
+              return false;
+            }
+          } catch (lengthError) {
+            console.warn('Cannot access localStorage.length:', lengthError);
+            return false;
+          }
+          
+          return true;
+        } catch (error) {
+          console.warn('Local storage availability test failed:', error);
+          return false;
+        }
+      }
+
+      // Get detailed storage status for debugging
+      getStorageStatus() {
+        const status = {
+          available: this.isStorageAvailable(),
+          hasData: false,
+          dataSize: 0,
+          entryCount: 0,
+          lastError: null,
+          quotaUsage: null
+        };
+
+        if (status.available) {
+          try {
+            const data = localStorage.getItem(this.storageKey);
+            if (data) {
+              status.hasData = true;
+              status.dataSize = new Blob([data]).size;
+              const parsed = JSON.parse(data);
+              if (parsed && Array.isArray(parsed.scores)) {
+                status.entryCount = parsed.scores.length;
+              }
+            }
+
+            // Try to estimate storage quota usage
+            try {
+              if (navigator.storage && navigator.storage.estimate) {
+                navigator.storage.estimate().then(estimate => {
+                  if (estimate.quota && estimate.usage) {
+                    status.quotaUsage = {
+                      used: estimate.usage,
+                      total: estimate.quota,
+                      percentage: Math.round((estimate.usage / estimate.quota) * 100)
+                    };
+                  }
+                }).catch(quotaError => {
+                  console.warn('Could not estimate storage quota:', quotaError);
+                });
+              }
+            } catch (quotaError) {
+              console.warn('Storage quota estimation not supported:', quotaError);
+            }
+          } catch (error) {
+            status.lastError = error.message;
+          }
+        }
+
+        return status;
+      }
+
+      // Proactively manage storage space by cleaning old entries
+      _manageStorageSpace() {
+        try {
+          if (!this.isStorageAvailable()) {
+            return false;
+          }
+
+          const scores = this.getHighScores();
+          
+          // If we have more than the maximum entries, trim to max
+          if (scores.length > this.maxEntries) {
+            const trimmedScores = scores.slice(0, this.maxEntries);
+            localStorage.setItem(this.storageKey, JSON.stringify({ scores: trimmedScores }));
+            console.info(`Trimmed high scores from ${scores.length} to ${trimmedScores.length} entries`);
+            return true;
+          }
+
+          // Check if we have very old entries (older than 2 years) and remove them if we have many entries
+          if (scores.length > 5) {
+            const twoYearsAgo = new Date();
+            twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+            
+            const recentScores = scores.filter(score => {
+              const scoreDate = new Date(score.date);
+              return scoreDate > twoYearsAgo;
+            });
+
+            if (recentScores.length < scores.length && recentScores.length >= 3) {
+              localStorage.setItem(this.storageKey, JSON.stringify({ scores: recentScores }));
+              console.info(`Removed ${scores.length - recentScores.length} old score entries`);
+              return true;
+            }
+          }
+
+          return false;
+        } catch (error) {
+          console.error('Failed to manage storage space:', error);
+          return false;
+        }
+      }
+    }
+
     // Same Game implementation (Step 1: core logic, Step 2: highlight, Step 3: simple animations)
     let COLS = 10; // default width
     let ROWS = 10; // default height
@@ -252,16 +1253,98 @@
     let hoverGroup = null; // array of [r,c]
     let focusRow = 0, focusCol = 0; // keyboard navigation state
 
+    // Initialize high score manager
+    const highScoreManager = new HighScoreManager();
+
+    /*
+     * ACCESSIBILITY FEATURES IMPLEMENTED:
+     * 
+     * 1. ARIA Attributes:
+     *    - aria-hidden, aria-modal, aria-labelledby for modals
+     *    - aria-describedby for enhanced context
+     *    - aria-label for buttons and interactive elements
+     *    - aria-live regions for dynamic content announcements
+     *    - role attributes for semantic structure
+     * 
+     * 2. Keyboard Navigation:
+     *    - Tab trapping within modals
+     *    - Escape key to close modals
+     *    - Arrow keys for table row navigation
+     *    - Global shortcut (Ctrl+H) for high score access
+     *    - Enter/Space activation for focused elements
+     * 
+     * 3. Focus Management:
+     *    - Proper focus restoration when closing modals
+     *    - Focus indicators for all interactive elements
+     *    - Roving tabindex for table rows
+     *    - Initial focus placement in modals
+     * 
+     * 4. Screen Reader Support:
+     *    - Comprehensive aria-labels with context
+     *    - Live region announcements for state changes
+     *    - Semantic table structure with proper headers
+     *    - Screen reader only content for additional context
+     *    - Proper heading hierarchy
+     * 
+     * 5. Additional Features:
+     *    - Inert background when modals are open
+     *    - Reduced motion support
+     *    - High contrast focus indicators
+     *    - Keyboard shortcut announcements
+     */
+
+    // Utility function to announce messages to screen readers
+    function announceToScreenReader(message, priority = 'polite') {
+      const announcement = document.createElement('div');
+      announcement.setAttribute('aria-live', priority);
+      announcement.setAttribute('aria-atomic', 'true');
+      announcement.className = 'sr-only';
+      announcement.style.position = 'absolute';
+      announcement.style.left = '-10000px';
+      announcement.style.width = '1px';
+      announcement.style.height = '1px';
+      announcement.style.overflow = 'hidden';
+      announcement.textContent = message;
+      document.body.appendChild(announcement);
+      
+      // Remove after announcement
+      setTimeout(() => {
+        if (announcement.parentNode) {
+          announcement.parentNode.removeChild(announcement);
+        }
+      }, 3000);
+    }
+
+
+
     const boardEl = document.getElementById('board');
     const scoreEl = document.querySelector('.score');
     const statusEl = document.getElementById('status');
-    const newGameBtn = document.querySelector('.btn');
+    const newGameBtn = document.querySelector('.toolbar .btn:last-child');
+    const highScoreBtn = document.getElementById('highScoreBtn');
     const sizeSelect = document.getElementById('sizeSelect');
     const overlayEl = document.getElementById('overlay');
     const overlayBtn = document.getElementById('overlayNewGame');
+    const overlayHighScoreBtn = document.getElementById('overlayHighScore');
+    const newRecordContainer = document.getElementById('newRecordContainer');
+    const highScoreOverlayEl = document.getElementById('highScoreOverlay');
+    const highScoreListEl = document.getElementById('highScoreList');
+    const clearScoresBtn = document.getElementById('clearScoresBtn');
+    const closeHighScoreBtn = document.getElementById('closeHighScoreBtn');
 
     newGameBtn.addEventListener('click', () => newGame());
+    highScoreBtn.addEventListener('click', () => showHighScores());
     overlayBtn.addEventListener('click', () => newGame());
+    overlayHighScoreBtn.addEventListener('click', () => {
+      // Hide end game modal first
+      overlayEl.classList.remove('show');
+      overlayEl.setAttribute('aria-hidden', 'true');
+      overlayEl.setAttribute('inert', '');
+      // Then show high scores
+      showHighScores();
+    });
+    closeHighScoreBtn.addEventListener('click', () => hideHighScores());
+    clearScoresBtn.addEventListener('click', () => clearHighScores());
     sizeSelect.addEventListener('change', () => {
       const [r, c] = sizeSelect.value.split('x').map(Number);
       ROWS = r; COLS = c;
@@ -514,6 +1597,31 @@
     function endGame() {
       gameState = 'ended';
       statusEl.textContent = 'ゲーム終了：削除可能なグループはありません';
+      
+      // Check for new record before saving
+      const currentBoardSize = sizeSelect.value; // e.g., "10x10", "15x15"
+      let recordInfo = { isNew: false, rank: null };
+      
+      // Only check for new record if storage is available
+      if (highScoreManager.isStorageAvailable()) {
+        recordInfo = highScoreManager.isNewRecord(score);
+        
+        // Save score to high score list
+        const saveResult = highScoreManager.saveScore(score, currentBoardSize);
+        
+        if (!saveResult) {
+          console.warn('Failed to save high score');
+          // Don't show new record notification if save failed
+          recordInfo = { isNew: false, rank: null };
+        }
+      } else {
+        // Storage not available, log for debugging
+        console.warn('High score storage not available, skipping score save');
+      }
+      
+      // Display new record notification if applicable and save was successful
+      displayNewRecordNotification(recordInfo, score);
+      
       overlayEl.classList.add('show');
       overlayEl.removeAttribute('inert');
       overlayEl.setAttribute('aria-hidden', 'false');
@@ -525,12 +1633,297 @@
       requestAnimationFrame(() => overlayBtn.focus());
     }
 
+    function showHighScores() {
+      // Check if storage is available before trying to show scores
+      if (!highScoreManager.isStorageAvailable()) {
+        // Show enhanced error message instead of modal
+        highScoreManager._showErrorMessage('ハイスコア機能が利用できません。ブラウザの設定を確認してください。', false);
+        return;
+      }
+
+      try {
+        // Generate and display the high score ranking table
+        generateHighScoreTable();
+        
+        // Show the modal
+        highScoreOverlayEl.classList.add('show');
+        highScoreOverlayEl.removeAttribute('inert');
+        highScoreOverlayEl.setAttribute('aria-hidden', 'false');
+        
+        // Enhanced ARIA attributes for better screen reader support
+        highScoreOverlayEl.setAttribute('aria-describedby', 'highScoreList');
+        
+        // Inert background sections for accessibility
+        for (const el of [document.querySelector('header'), document.querySelector('main'), document.querySelector('footer')]) {
+          if (el) el.setAttribute('inert', '');
+        }
+        
+        // Store the element that had focus before opening modal for proper focus restoration
+        highScoreOverlayEl._previousFocus = document.activeElement;
+      } catch (error) {
+        console.error('Failed to show high scores:', error);
+        highScoreManager._showErrorMessage('ハイスコアの表示中にエラーが発生しました。ブラウザを再読み込みしてください。', false);
+      }
+      
+      // Move focus into the dialog for screen reader users
+      requestAnimationFrame(() => {
+        // Focus on the modal title first for screen reader context
+        const title = document.getElementById('highScoreTitle');
+        if (title) {
+          title.focus();
+          // Then move to close button after a brief delay for screen reader announcement
+          setTimeout(() => closeHighScoreBtn.focus(), 100);
+        } else {
+          closeHighScoreBtn.focus();
+        }
+      });
+    }
+
+    function hideHighScores() {
+      // Hide the modal
+      highScoreOverlayEl.classList.remove('show');
+      highScoreOverlayEl.setAttribute('aria-hidden', 'true');
+      highScoreOverlayEl.setAttribute('inert', '');
+      
+      // Remove enhanced ARIA attributes
+      highScoreOverlayEl.removeAttribute('aria-describedby');
+      
+      // Remove inert from background sections
+      for (const el of [document.querySelector('header'), document.querySelector('main'), document.querySelector('footer')]) {
+        if (el) el.removeAttribute('inert');
+      }
+      
+      // Restore focus to the element that had focus before opening modal
+      const previousFocus = highScoreOverlayEl._previousFocus;
+      if (previousFocus && document.contains(previousFocus)) {
+        previousFocus.focus();
+      } else {
+        // Fallback to high score button if previous focus is not available
+        highScoreBtn.focus();
+      }
+      
+      // Clean up stored focus reference
+      delete highScoreOverlayEl._previousFocus;
+    }
+
+    function generateHighScoreTable() {
+      try {
+        const scores = highScoreManager.getHighScores();
+        
+        if (scores.length === 0) {
+          // Display empty state message
+          highScoreListEl.innerHTML = `
+            <div class="empty-scores" role="status" aria-live="polite" tabindex="0" aria-label="ハイスコア記録なし">
+              まだ記録がありません<br>
+              ゲームをプレイしてハイスコアを作りましょう！
+            </div>
+          `;
+          return;
+        }
+
+      // Create table structure
+      const table = document.createElement('table');
+      table.className = 'high-score-table';
+      table.setAttribute('role', 'table');
+      table.setAttribute('aria-label', 'ハイスコアランキング表');
+      table.setAttribute('aria-describedby', 'highScoreTitle');
+
+      // Create table header
+      const thead = document.createElement('thead');
+      thead.innerHTML = `
+        <tr>
+          <th scope="col">順位</th>
+          <th scope="col">スコア</th>
+          <th scope="col">盤面サイズ</th>
+          <th scope="col">達成日時</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+
+      // Create table body
+      const tbody = document.createElement('tbody');
+      
+      scores.forEach((entry, index) => {
+        const rank = index + 1;
+        const row = document.createElement('tr');
+        row.className = 'high-score-row';
+        
+        // Format date for display with error handling
+        let formattedDate;
+        try {
+          const date = new Date(entry.date);
+          if (isNaN(date.getTime())) {
+            throw new Error('Invalid date');
+          }
+          formattedDate = date.toLocaleDateString('ja-JP', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        } catch (dateError) {
+          console.warn('Failed to format date for entry:', entry, dateError);
+          formattedDate = '日時不明';
+        }
+
+        // Create rank badge with appropriate styling
+        const rankBadgeClass = rank <= 3 ? `rank-${rank}` : 'rank-other';
+        
+        row.innerHTML = `
+          <td>
+            <span class="rank-badge ${rankBadgeClass}" aria-label="${rank}位" role="img">
+              ${rank}
+            </span>
+          </td>
+          <td class="score-cell">
+            <span aria-label="${typeof entry.score === 'number' ? entry.score.toLocaleString() : '0'}点のスコア">
+              ${typeof entry.score === 'number' ? entry.score.toLocaleString() : '0'}
+            </span>
+          </td>
+          <td>
+            <span class="board-size-cell" aria-label="盤面サイズ${entry.boardSize}">
+              ${entry.boardSize}
+            </span>
+          </td>
+          <td class="date-cell">
+            <span aria-label="達成日時${formattedDate}">
+              ${formattedDate}
+            </span>
+          </td>
+        `;
+        
+        // Add row-level accessibility attributes
+        row.setAttribute('role', 'row');
+        row.setAttribute('aria-label', `${rank}位: ${typeof entry.score === 'number' ? entry.score.toLocaleString() : '0'}点, 盤面${entry.boardSize || '不明'}, ${formattedDate}`);
+        row.setAttribute('tabindex', index === 0 ? '0' : '-1'); // First row is focusable by default
+        
+        tbody.appendChild(row);
+      });
+
+      table.appendChild(tbody);
+      
+      // Replace the content of the high score list
+      highScoreListEl.innerHTML = '';
+      highScoreListEl.appendChild(table);
+    } catch (error) {
+      console.error('Failed to generate high score table:', error);
+      
+      // Display error message to user
+      highScoreListEl.innerHTML = `
+        <div class="empty-scores" role="alert" aria-live="assertive" tabindex="0" aria-label="エラー: ハイスコア表示に失敗">
+          ❌ ハイスコアの表示中にエラーが発生しました<br>
+          ブラウザを再読み込みしてください
+        </div>
+      `;
+      
+      // Also show error notification
+      highScoreManager._showErrorMessage('ハイスコア表示中にエラーが発生しました。ブラウザを再読み込みしてください。', false);
+    }
+    }
+
+    function clearHighScores() {
+      // Show confirmation dialog
+      const confirmed = confirm('すべてのハイスコア記録を削除しますか？\nこの操作は取り消せません。');
+      
+      if (confirmed) {
+        const success = highScoreManager.clearScores();
+        
+        if (success) {
+          // Regenerate the table to show empty state
+          generateHighScoreTable();
+          
+          // Announce success to screen readers
+          announceToScreenReader('ハイスコア記録がリセットされました', 'assertive');
+          
+          // Show success message with enhanced notification
+          highScoreManager._showErrorMessage('記録がリセットされました', true);
+          
+          // Return focus to close button after clearing
+          setTimeout(() => closeHighScoreBtn.focus(), 100);
+        } else {
+          // Announce error to screen readers
+          announceToScreenReader('記録のリセットに失敗しました', 'assertive');
+          
+          // Show error message with enhanced notification
+          highScoreManager._showErrorMessage('記録のリセットに失敗しました。再度お試しください。', false);
+        }
+      } else {
+        // Return focus to clear button if cancelled
+        clearScoresBtn.focus();
+      }
+    }
+
+    function displayNewRecordNotification(recordInfo, score) {
+      // Hide notification container by default
+      newRecordContainer.style.display = 'none';
+      overlayHighScoreBtn.style.display = 'none';
+      
+      // Only show notification if it's a new record
+      if (!recordInfo.isNew) {
+        return;
+      }
+
+      // Show the high score button in end game modal
+      overlayHighScoreBtn.style.display = 'inline-block';
+      
+      // Create notification content
+      let notificationClass = 'new-record-badge';
+      let rankText = '';
+      let messageText = '';
+      
+      if (recordInfo.isFirst) {
+        // First time playing
+        notificationClass = 'new-record-first';
+        rankText = '🎉 初回記録！';
+        messageText = `スコア ${score.toLocaleString()}点を記録しました！<br>さらなる高得点を目指しましょう！`;
+      } else if (recordInfo.isTopThree) {
+        // Top 3 achievement
+        notificationClass = 'new-record-top3';
+        const rankEmojis = ['🥇', '🥈', '🥉'];
+        const rankNames = ['1位', '2位', '3位'];
+        rankText = `${rankEmojis[recordInfo.rank - 1]} ${rankNames[recordInfo.rank - 1]} 新記録達成！`;
+        messageText = `素晴らしい！スコア ${score.toLocaleString()}点で${rankNames[recordInfo.rank - 1]}にランクインしました！`;
+      } else {
+        // Regular new record
+        rankText = `🏆 ${recordInfo.rank}位 新記録達成！`;
+        messageText = `スコア ${score.toLocaleString()}点でランキング${recordInfo.rank}位に入りました！`;
+      }
+      
+      // Create notification HTML
+      const notificationHTML = `
+        <div class="new-record-notification ${notificationClass}" role="alert" aria-live="assertive">
+          <span class="record-rank">${rankText}</span>
+          <div class="record-message">${messageText}</div>
+        </div>
+      `;
+      
+      // Insert notification and show container
+      newRecordContainer.innerHTML = notificationHTML;
+      newRecordContainer.style.display = 'block';
+      
+      // Announce to screen readers with enhanced accessibility
+      const cleanRankText = rankText.replace(/🎉|🥇|🥈|🥉|🏆/g, '').trim();
+      const cleanMessageText = messageText.replace(/<br>/g, ' ').replace(/<[^>]*>/g, '');
+      const announcement = `${cleanRankText} ${cleanMessageText}`;
+      
+      setTimeout(() => {
+        announceToScreenReader(announcement, 'assertive');
+      }, 500);
+    }
+
     function newGame() {
       // Clear board DOM so that cell count matches new size
       boardEl.innerHTML = '';
       board = createRandomBoard(ROWS, COLS, TYPES);
       score = 0; gameState = 'playing';
       statusEl.textContent = 'プレイ中：同じ色が2つ以上つながったグループをクリック/タップで削除できます';
+      
+      // Reset new record notification
+      newRecordContainer.style.display = 'none';
+      newRecordContainer.innerHTML = '';
+      overlayHighScoreBtn.style.display = 'none';
+      
       // ensure focus is not inside the dialog before hiding it
       overlayBtn.blur();
       newGameBtn.focus();
@@ -575,8 +1968,16 @@
     // Trap focus within the overlay when visible
     overlayEl.addEventListener('keydown', (e) => {
       if (!overlayEl.classList.contains('show')) return;
+      
+      // Handle Escape key to close modal
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        newGame();
+        return;
+      }
+      
       if (e.key !== 'Tab') return;
-      const focusables = overlayEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      const focusables = overlayEl.querySelectorAll('button:not([style*="display: none"]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
       if (!focusables.length) return;
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
@@ -585,6 +1986,93 @@
       } else {
         if (document.activeElement === last) { e.preventDefault(); first.focus(); }
       }
+    });
+
+    // Enhanced keyboard navigation for high score overlay
+    highScoreOverlayEl.addEventListener('keydown', (e) => {
+      if (!highScoreOverlayEl.classList.contains('show')) return;
+      
+      // Handle Escape key to close modal
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        hideHighScores();
+        return;
+      }
+      
+      // Handle arrow keys for table navigation
+      const table = highScoreOverlayEl.querySelector('.high-score-table');
+      if (table && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        const rows = table.querySelectorAll('tbody tr');
+        if (rows.length > 0) {
+          e.preventDefault();
+          
+          // Find current focused row or start from first
+          let currentIndex = -1;
+          rows.forEach((row, index) => {
+            if (row.contains(document.activeElement) || row === document.activeElement) {
+              currentIndex = index;
+            }
+          });
+          
+          // Navigate to next/previous row
+          if (e.key === 'ArrowDown') {
+            currentIndex = currentIndex < rows.length - 1 ? currentIndex + 1 : 0;
+          } else if (e.key === 'ArrowUp') {
+            currentIndex = currentIndex > 0 ? currentIndex - 1 : rows.length - 1;
+          }
+          
+          // Focus the row and announce its content
+          const targetRow = rows[currentIndex];
+          if (targetRow) {
+            targetRow.setAttribute('tabindex', '0');
+            targetRow.focus();
+            
+            // Remove tabindex from other rows
+            rows.forEach((row, index) => {
+              if (index !== currentIndex) {
+                row.setAttribute('tabindex', '-1');
+              }
+            });
+            
+            // Announce row content for screen readers
+            const announcement = targetRow.getAttribute('aria-label');
+            if (announcement) {
+              announceToScreenReader(announcement);
+            }
+          }
+          return;
+        }
+      }
+      
+      // Handle Tab key for focus trapping
+      if (e.key !== 'Tab') return;
+      const focusables = highScoreOverlayEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"]), .high-score-row[tabindex="0"]');
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
+
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Ctrl/Cmd + H to open high scores (when not in a modal)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
+        if (!overlayEl.classList.contains('show') && !highScoreOverlayEl.classList.contains('show')) {
+          e.preventDefault();
+          showHighScores();
+        }
+      }
+    });
+
+    // Announce keyboard shortcuts to screen readers on page load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        announceToScreenReader('キーボードショートカット: Ctrl+Hでハイスコアランキングを表示できます');
+      }, 2000);
     });
 
     // init
